@@ -34,6 +34,6 @@ server.use(router);
 // Zeabur 會自動注入 PORT 環境變數，必須優先使用
 const port = process.env.PORT || 3000;
 
-server.listen(port, () => {
+server.listen(port, "0.0.0.0", () => {
   console.log(`JSON Server with Auth is running on port ${port}`);
 });
