@@ -1,8 +1,8 @@
-import jsonServer from 'json-server';
-import auth from 'json-server-auth';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import cors from 'cors';
+const jsonServer = require('json-server');
+const auth = require('json-server-auth');
+const cors = require('cors'); // 1. 引入 cors 套件
+const path = require('path');
+const { fileURLToPath } = require('url');
 
 // 1. ES Module 路徑處理
 const __filename = fileURLToPath(import.meta.url);
