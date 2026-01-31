@@ -1,0 +1,9 @@
+{
+  "users": [],
+  "posts": [
+    { "id": 1, "title": "公開文章", "content": "大家都可以看" }
+  ],
+  "private-data": [
+    { "id": 1, "secret": "這是登入後才能看到的資料" }
+  ]
+}
