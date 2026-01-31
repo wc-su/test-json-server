@@ -2,6 +2,7 @@ import jsonServer from 'json-server';
 import auth from 'json-server-auth';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import cors from 'cors';
 
 // 1. ES Module 路徑處理
 const __filename = fileURLToPath(import.meta.url);
@@ -25,6 +26,7 @@ const rules = auth.rewriter({
   "/private-data*": "/660/private-data$1" 
 });
 
+server.use(cors());
 server.use(middlewares);
 server.use(rules); // 套用自訂路由規則
 server.use(auth);  // 套用驗證中介軟體
