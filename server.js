@@ -1,12 +1,6 @@
 const jsonServer = require('json-server');
 const auth = require('json-server-auth');
-const cors = require('cors'); // 1. 引入 cors 套件
 const path = require('path');
-const { fileURLToPath } = require('url');
-
-// 1. ES Module 路徑處理
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const server = jsonServer.create();
 const router = jsonServer.router(path.join(__dirname, 'db.json'));
@@ -26,7 +20,7 @@ const rules = auth.rewriter({
   "/private-data*": "/660/private-data$1" 
 });
 
-server.use(cors());
+
 server.use(middlewares);
 server.use(rules); // 套用自訂路由規則
 server.use(auth);  // 套用驗證中介軟體
