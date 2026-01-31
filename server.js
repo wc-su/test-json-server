@@ -1,35 +1,89 @@
+// ============================================
+// JSON Server + Auth 設定檔
+// ============================================
+
 const jsonServer = require('json-server');
 const auth = require('json-server-auth');
 const path = require('path');
+const fs = require('fs');
 
+// ============================================
+// 1. 建立 Server 實例
+// ============================================
 const server = jsonServer.create();
-const router = jsonServer.router(path.join(__dirname, 'db.json'));
-const middlewares = jsonServer.defaults();
+const middlewares = jsonServer.defaults(); // 內建 CORS、靜態檔案、logger 等
 
-// 2. 綁定資料庫 (這是 json-server-auth 運作的必要步驟)
+// ============================================
+// 2. 資料庫路徑設定（支援 Volume 持久化）
+// ============================================
+
+// 來源資料庫：專案目錄中的 db.json（作為初始資料模板）
+const sourceDb = path.join(__dirname, 'db.json');
+
+// 判斷執行環境
+const isProd = process.env.NODE_ENV === 'production';
+
+// 目標資料庫路徑
+// - 生產環境：/data/db.json（掛載 Volume 的位置）
+// - 開發環境：專案目錄的 db.json
+const dbDirectory = isProd ? '/data' : __dirname;
+const dbPath = path.join(dbDirectory, 'db.json');
+
+// ============================================
+// 3. 自動初始化資料庫
+// ============================================
+// 當 Volume 剛掛載時，/data 是空的
+// 這段程式會自動複製初始資料，避免 crash
+if (!fs.existsSync(dbPath)) {
+  console.log('目標資料庫不存在，正在初始化...');
+
+  // 確保目標資料夾存在
+  const dbDir = path.dirname(dbPath);
+  if (!fs.existsSync(dbDir)) {
+    fs.mkdirSync(dbDir, { recursive: true });
+  }
+
+  // 從來源複製一份到目標位置
+  fs.copyFileSync(sourceDb, dbPath);
+  console.log('資料庫初始化完成！');
+}
+
+// 建立 router（讀取資料庫）
+const router = jsonServer.router(dbPath);
+
+// ============================================
+// 4. 設定 json-server-auth
+// ============================================
+
+// 綁定資料庫（json-server-auth 必要步驟）
 server.db = router.db;
 
-// 3. 設定權限規則 (可選)
-// 這裡可以定義哪些路徑需要權限，例如：
-// /users: 只有登入者(660)才能讀寫
-// /private-data: 只有登入者(660)才能讀寫
-// 其他預設遵循 json-server-auth 規則
+// 權限規則設定
+// 格式說明：
+// - 600: 需登入才能寫，可公開讀
+// - 640: 需登入才能寫，登入者才能讀
+// - 660: 需登入才能讀寫
 const rules = auth.rewriter({
-  // 格式： 路由: 權限等級 (660 代表需登入才能讀寫，600 代表需登入才能寫但可公開讀)
-  "/users*": "/660/users$1",
-  "/private-data*": "/660/private-data$1" 
+  '/users*': '/660/users$1',
+  '/private-data*': '/660/private-data$1',
 });
 
+// ============================================
+// 5. 套用 Middleware（順序重要！）
+// ============================================
+server.use(middlewares);  // 預設 middleware（CORS、logger 等）
+server.use(rules);        // 權限路由規則
+server.use(auth);         // 驗證中介軟體
+server.use(router);       // API 路由
 
-server.use(middlewares);
-server.use(rules); // 套用自訂路由規則
-server.use(auth);  // 套用驗證中介軟體
-server.use(router);
+// ============================================
+// 6. 啟動 Server
+// ============================================
 
-// 4. 設定 Port
-// Zeabur 會自動注入 PORT 環境變數，必須優先使用
+// Zeabur 會自動注入 PORT 環境變數
 const port = process.env.PORT || 3000;
 
 server.listen(port, () => {
   console.log(`JSON Server with Auth is running on port ${port}`);
+  console.log(`Database path: ${dbPath}`);
 });
