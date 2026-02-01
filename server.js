@@ -1,11 +1,16 @@
 // ============================================
-// JSON Server + Auth 設定檔
+// JSON Server + Auth 設定檔 (ES Module)
 // ============================================
 
-const jsonServer = require('json-server');
-const auth = require('json-server-auth');
-const path = require('path');
-const fs = require('fs');
+import jsonServer from 'json-server';
+import auth from 'json-server-auth';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+// ES Module 需要手動取得 __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // ============================================
 // 1. 建立 Server 實例
