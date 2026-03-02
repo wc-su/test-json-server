@@ -5,8 +5,10 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// 判斷要讀取 Zeabur 的 Volume 還是本地端的檔案
-const dbPath = process.env.JSON_DB_PATH || path.join(__dirname, 'db.json');
+// 與 server.js 使用相同的路徑邏輯
+const isProd = process.env.NODE_ENV === 'production';
+const dbDirectory = isProd ? '/data' : __dirname;
+const dbPath = path.join(dbDirectory, 'db.json');
 
 try {
     // 1. 讀取現有資料庫
