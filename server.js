@@ -69,8 +69,7 @@ server.db = router.db;
 // - 640: 需登入才能寫，登入者才能讀
 // - 660: 需登入才能讀寫
 const rules = auth.rewriter({
-  '/users*': '/660/users$1',
-  '/private-data*': '/660/private-data$1',
+  '/wishlists*': '/600/wishlists$1',
 });
 
 // ============================================
