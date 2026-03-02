@@ -81,15 +81,17 @@ server.use(middlewares);  // 預設 middleware（CORS、logger 等）
 
 // bodyParser 已包含在 jsonServer.defaults() 中，以下 middleware 可直接使用 req.body
 
-// 自定義 ID 生成邏輯
+// 自動為新增資料使用 UUID 作為 id
+// - 僅針對 POST 請求（建立資料），PUT/PATCH 等更新操作不處理
+// - 排除 /login：login 不會建立資料，不需要 id，且 req.body 在此階段可能尚未解析
+// - 前端若自行傳入 id 則優先使用，不覆蓋
 server.use((req, res, next) => {
-  if (req.method === 'POST') {
-    // 如果前端沒有傳 id，後端就幫它產生一個 UUID
+  if (req.method === 'POST' && req.body && req.path !== '/login') {
     if (!req.body.id) {
       req.body.id = randomUUID();
     }
   }
-  next(); // 繼續往下傳給 json-server
+  next();
 });
 
 // 備份專用 API（需帶 ?token=BACKUP_SECRET 才能存取）
