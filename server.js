@@ -7,7 +7,7 @@ import auth from 'json-server-auth';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 
 // ES Module 需要手動取得 __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -86,7 +86,7 @@ server.use((req, res, next) => {
   if (req.method === 'POST') {
     // 如果前端沒有傳 id，後端就幫它產生一個 UUID
     if (!req.body.id) {
-      req.body.id = uuidv4();
+      req.body.id = randomUUID();
     }
   }
   next(); // 繼續往下傳給 json-server

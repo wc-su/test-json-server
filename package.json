@@ -10,7 +10,6 @@
   "description": "",
   "dependencies": {
     "json-server": "0.17.4",
-    "json-server-auth": "^2.1.0",
-    "uuid": "^13.0.0"
+    "json-server-auth": "^2.1.0"
   }
 }
