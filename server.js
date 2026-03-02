@@ -7,6 +7,7 @@ import auth from 'json-server-auth';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import { v4 as uuidv4 } from 'uuid';
 
 // ES Module 需要手動取得 __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -76,6 +77,20 @@ const rules = auth.rewriter({
 // 5. 套用 Middleware（順序重要！）
 // ============================================
 server.use(middlewares);  // 預設 middleware（CORS、logger 等）
+
+server.use(jsonServer.bodyParser); // 記得要先解析 Body
+
+// 自定義 ID 生成邏輯
+server.use((req, res, next) => {
+  if (req.method === 'POST') {
+    // 如果前端沒有傳 id，後端就幫它產生一個 UUID
+    if (!req.body.id) {
+      req.body.id = uuidv4();
+    }
+  }
+  next(); // 繼續往下傳給 json-server
+});
+
 server.use(rules);        // 權限路由規則
 server.use(auth);         // 驗證中介軟體
 server.use(router);       // API 路由
@@ -87,7 +102,7 @@ server.use(router);       // API 路由
 // Zeabur 會自動注入 PORT 環境變數
 const port = process.env.PORT || 3000;
 
-server.listen(port, '0.0.0.0', () => {
+server.listen(port, () => {
   console.log(`JSON Server with Auth is running on port ${port}`);
   console.log(`Database path: ${dbPath}`);
 });
