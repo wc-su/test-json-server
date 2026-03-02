@@ -66,10 +66,11 @@ server.db = router.db;
 
 // 權限規則設定
 // 格式說明：
-// - 600: 需登入才能寫，可公開讀
-// - 640: 需登入才能寫，登入者才能讀
-// - 660: 需登入才能讀寫
+// - 600: 只有 owner 本人可以讀寫，其他人完全無權限
+// - 640: Owner 可讀寫，其他登入者只能讀
+// - 660: 所有登入者都可讀寫
 const rules = auth.rewriter({
+  '/users*': '/600/users$1',
   '/wishlists*': '/600/wishlists$1',
 });
 
@@ -78,7 +79,7 @@ const rules = auth.rewriter({
 // ============================================
 server.use(middlewares);  // 預設 middleware（CORS、logger 等）
 
-server.use(jsonServer.bodyParser); // 記得要先解析 Body
+// bodyParser 已包含在 jsonServer.defaults() 中，以下 middleware 可直接使用 req.body
 
 // 自定義 ID 生成邏輯
 server.use((req, res, next) => {
@@ -91,8 +92,12 @@ server.use((req, res, next) => {
   next(); // 繼續往下傳給 json-server
 });
 
-// 備份專用 API
+// 備份專用 API（需帶 ?token=BACKUP_SECRET 才能存取）
 server.get('/api/backup', (req, res) => {
+  const secret = process.env.BACKUP_SECRET;
+  if (!secret || req.query.token !== secret) {
+    return res.status(401).json({ error: '未授權' });
+  }
   if (fs.existsSync(dbPath)) {
     res.download(dbPath, `plantique-backup-${Date.now()}.json`);
   } else {
