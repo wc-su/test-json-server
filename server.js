@@ -91,6 +91,15 @@ server.use((req, res, next) => {
   next(); // 繼續往下傳給 json-server
 });
 
+// 備份專用 API
+server.get('/api/backup', (req, res) => {
+  if (fs.existsSync(dbPath)) {
+    res.download(dbPath, `plantique-backup-${Date.now()}.json`);
+  } else {
+    res.status(404).json({ error: '找不到資料庫檔案' });
+  }
+});
+
 server.use(rules);        // 權限路由規則
 server.use(auth);         // 驗證中介軟體
 server.use(router);       // API 路由
